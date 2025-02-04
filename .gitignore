@@ -1,0 +1,42 @@
+# Ignore Visual Studio & Rider IDE settings
+.vs/
+.idea/
+*.suo
+*.user
+*.cache
+*.log
+
+# Ignore build & binary folders
+bin/
+obj/
+out/
+publish/
+
+# Ignore user secrets (Sensitive data)
+secrets.json
+**/appsettings.Development.json
+
+# Ignore dependency caches
+node_modules/
+packages/
+*.nupkg
+*.snupkg
+
+# Ignore generated files
+*.db
+*.mdf
+*.ldf
+*.sqlite
+*.bak
+*.log
+
+# Ignore EF Core migrations (optional, if you regenerate often)
+Migrations/
+
+# Ignore JetBrains Rider files (if using Rider)
+.idea/
+
+# Ignore macOS & Linux system files
+.DS_Store
+*.swp
+Thumbs.db

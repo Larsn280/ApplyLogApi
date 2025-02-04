@@ -1,0 +1,6 @@
+@ApplyLogApi_HostAddress = http://localhost:5110
+
+GET {{ApplyLogApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
