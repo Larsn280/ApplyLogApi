@@ -1,5 +1,7 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/ApplyLogEntry")]
@@ -29,8 +31,15 @@ public class ApplyLogEntryController : ControllerBase
         // Return a response with the created log entry
         return CreatedAtAction(nameof(GetApplyLogEntry), new { id = logEntry.Id }, logEntry);
     }
+    
+    [HttpGet]
+    public async Task<ActionResult<ApplyLogEntry>> FetchAllLoggedEntries() {
+        
+        var allLoggedEntries = await _context.ApplyLogEntries.ToListAsync();
 
-    // Example of a GET endpoint to retrieve a log entry by ID (you can create other actions like GET all logs)
+        return Ok(allLoggedEntries);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<ApplyLogEntry>> GetApplyLogEntry(int id)
     {
