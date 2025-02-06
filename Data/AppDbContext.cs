@@ -4,5 +4,5 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<ApplyLogEntry> ApplyLogEntries { get; set; }
+    public DbSet<ApplicationData> ApplicationDatas { get; set; }
 }

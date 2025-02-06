@@ -15,57 +15,92 @@ public class ApplyLogEntryController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApplyLogEntry>> PostApplyLogEntry(ApplyLogEntry logEntry)
+    public async Task<ActionResult<ApplicationData>> PostApplication(ApplicationData applicationData)
     {
-        if (logEntry == null)
+
+        try
         {
-            return BadRequest("Invalid data.");
+            if (applicationData == null)
+            {
+                return BadRequest("Invalid data.");
+            }
+
+            // Add the new ApplyLogEntry to the database
+            _context.ApplicationDatas.Add(applicationData);
+
+            // Save the changes
+            await _context.SaveChangesAsync();
+
+            // Return a response with the created log entry
+            return CreatedAtAction(nameof(GetApplicationById), new { id = applicationData.Id }, applicationData);
+
         }
-
-        // Add the new ApplyLogEntry to the database
-        _context.ApplyLogEntries.Add(logEntry);
-
-        // Save the changes
-        await _context.SaveChangesAsync();
-
-        // Return a response with the created log entry
-        return CreatedAtAction(nameof(GetApplyLogEntry), new { id = logEntry.Id }, logEntry);
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Internal server error: " + ex.Message);
+        }
     }
-    
-    [HttpGet]
-    public async Task<ActionResult<ApplyLogEntry>> FetchAllLoggedEntries() {
-        
-        var allLoggedEntries = await _context.ApplyLogEntries.ToListAsync();
 
-        return Ok(allLoggedEntries);
+    [HttpGet]
+    public async Task<ActionResult<ApplicationData>> FetchAllApplications()
+    {
+
+        try
+        {
+            var allApplications = await _context.ApplicationDatas.ToListAsync();
+            return Ok(allApplications);
+        }
+        catch (Exception ex)
+        {
+
+            return StatusCode(500, "Internal server error: " + ex.Message);
+        }
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApplyLogEntry>> GetApplyLogEntry(int id)
+    public async Task<ActionResult<ApplicationData>> GetApplicationById(int applicationId)
     {
-        var logEntry = await _context.ApplyLogEntries.FindAsync(id);
 
-        if (logEntry == null)
+        try
         {
-            return NotFound();
-        }
+            var application = await _context.ApplicationDatas.FindAsync(applicationId);
 
-        return logEntry;
+            if (application == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(application);
+        }
+        catch (Exception ex)
+        {
+
+            return StatusCode(500, "Internal server errors: " + ex.Message);
+        }
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> RemoveApplyLogEntry(int id) {
+    public async Task<ActionResult> RemoveApplication(int applicationId)
+    {
 
-        var logEntry = await _context.ApplyLogEntries.FindAsync(id);
+        try
+        {
+            var application = await _context.ApplicationDatas.FindAsync(applicationId);
 
-        if(logEntry == null) {
-            return NotFound();
+            if (application == null)
+            {
+                return NotFound();
+            }
+
+            _context.ApplicationDatas.Remove(application);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Internal server error: " + ex.Message);
         }
 
-        _context.ApplyLogEntries.Remove(logEntry);
-
-        await _context.SaveChangesAsync();
-
-        return NoContent();
     }
 }

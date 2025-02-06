@@ -1,11 +1,11 @@
-public class ApplyLogEntry
+public class ApplicationData
 {
     public int Id { get; set; }
     public string? AdSource { get; set; }
     public string? Company { get; set; }
     public string? AppliedJob { get; set; }
     public string? Location { get; set; }
-    public string? Contact {get; set; }
+    public string? Contact { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
     public string? Date { get; set; }
