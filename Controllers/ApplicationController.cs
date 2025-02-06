@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [ApiController]
-[Route("api/ApplyLogEntry")]
-public class ApplyLogEntryController : ControllerBase
+[Route("api/Application")]
+public class ApplicationController : ControllerBase
 {
     private readonly AppDbContext _context;
 
-    public ApplyLogEntryController(AppDbContext context)
+    public ApplicationController(AppDbContext context)
     {
         _context = context;
     }
@@ -57,7 +57,7 @@ public class ApplyLogEntryController : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{applicationId}")]
     public async Task<ActionResult<ApplicationData>> GetApplicationById(int applicationId)
     {
 
@@ -79,7 +79,7 @@ public class ApplyLogEntryController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{applicationId}")]
     public async Task<ActionResult> RemoveApplication(int applicationId)
     {
 
