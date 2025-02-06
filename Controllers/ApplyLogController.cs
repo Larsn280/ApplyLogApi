@@ -52,4 +52,20 @@ public class ApplyLogEntryController : ControllerBase
 
         return logEntry;
     }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> RemoveApplyLogEntry(int id) {
+
+        var logEntry = await _context.ApplyLogEntries.FindAsync(id);
+
+        if(logEntry == null) {
+            return NotFound();
+        }
+
+        _context.ApplyLogEntries.Remove(logEntry);
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
