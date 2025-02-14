@@ -1,12 +1,12 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
-using Amazon.Lambda.AspNetCoreServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Check if we're running in Lambda
 bool isRunningInLambda = Environment.GetEnvironmentVariable("RUNNING_IN_LAMBDA") == "true";
 
+// Configure services for DynamoDB and controllers
 if (!isRunningInLambda)
 {
     // Local configuration for DynamoDB
@@ -27,7 +27,14 @@ if (!isRunningInLambda)
     builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>();
 }
 
-builder.Services.AddControllers();
+// Add the required services for controllers
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
+
+// Add Swagger for local development
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -45,6 +52,5 @@ app.MapControllers();
 
 if (!isRunningInLambda)
 {
-    // Run normally when not in Lambda (local environment)
-    app.Run();
+    app.Run(); // Run locally
 }

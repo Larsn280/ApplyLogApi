@@ -7,7 +7,7 @@ public class ApplicationData
     public string PK { get; set; } = "APPLICATION"; // Static prefix for grouping
 
     [DynamoDBRangeKey] // Sort Key (SK)
-    public string SK { get; set; }
+    public string? SK { get; set; }
 
     [DynamoDBProperty]
     public string? AdSource { get; set; }
@@ -49,5 +49,5 @@ public class ApplicationData
     public string? Comments { get; set; }
 
     [DynamoDBProperty]
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime? Timestamp { get; set; } = DateTime.UtcNow;
 }

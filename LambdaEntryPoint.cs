@@ -1,16 +1,11 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.AspNetCoreServer;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 
 public class LambdaEntryPoint : APIGatewayProxyFunction
 {
-    // Override the Init method to configure services for Lambda
     protected override void Init(IWebHostBuilder builder)
     {
-        // Add services needed for your Lambda function
         builder.ConfigureServices(services =>
         {
             services.AddSingleton<IAmazonDynamoDB>(sp =>
@@ -22,16 +17,19 @@ public class LambdaEntryPoint : APIGatewayProxyFunction
             services.AddSingleton<IDynamoDBContext, DynamoDBContext>();
 
             // Add ASP.NET Core MVC (Controllers)
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // Ensure camelCase is applied in Lambda as well
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
 
-            // If you need to enable Swagger (for local development), keep this, but it won't be used in Lambda
-            // services.AddSwaggerGen();
+            // Swagger isn't needed in Lambda, but you can keep it for local development (in Program.cs)
+            // services.AddSwaggerGen(); // Keep this commented out for Lambda
         });
 
-        // Configure the middleware (request handling)
         builder.Configure(app =>
         {
-            // Configure routing and controller endpoints
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
