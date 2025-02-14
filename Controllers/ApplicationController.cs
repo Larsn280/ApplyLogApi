@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [ApiController]
-[Route("api/Application")]
+[Route("Application")]
 public class ApplicationController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -31,8 +31,7 @@ public class ApplicationController : ControllerBase
             // Save the changes
             await _context.SaveChangesAsync();
 
-            // Return a response with the created log entry
-            return CreatedAtAction(nameof(GetApplicationById), new { id = applicationData.Id }, applicationData);
+            return StatusCode(201);
 
         }
         catch (Exception ex)
