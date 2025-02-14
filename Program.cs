@@ -1,17 +1,18 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.DocumentModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure AWS DynamoDB Client
 builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
 {
-    var config = builder.Configuration.GetSection("AWS");
+    var accessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
+    var secretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+    var region = Environment.GetEnvironmentVariable("AWS_REGION");
+
     return new AmazonDynamoDBClient(
-        config["AccessKey"],
-        config["SecretKey"],
-        Amazon.RegionEndpoint.GetBySystemName(config["Region"])
+        accessKey,
+        secretKey,
+        Amazon.RegionEndpoint.GetBySystemName(region)
     );
 });
 
