@@ -1,33 +1,36 @@
-using Microsoft.EntityFrameworkCore;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddSwaggerGen();
+// Configure AWS DynamoDB Client
+builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
+{
+    var config = builder.Configuration.GetSection("AWS");
+    return new AmazonDynamoDBClient(
+        config["AccessKey"],
+        config["SecretKey"],
+        Amazon.RegionEndpoint.GetBySystemName(config["Region"])
+    );
+});
+
+// Register DynamoDB Context
+builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>();
+
 builder.Services.AddControllers();
-
-// Ensure the app listens for both HTTP and HTTPS
-builder.WebHost.UseUrls("http://localhost:5110", "https://localhost:7002");
-
-// Register DbContext (AppDbContext) for EF Core
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DevelopmentConnection"))
-);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
-
+app.UseHttpsRedirection();
+app.UseAuthorization();
 app.MapControllers();
-
 app.Run();
-
-

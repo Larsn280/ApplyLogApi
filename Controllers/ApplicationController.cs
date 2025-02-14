@@ -1,23 +1,21 @@
-using System.Runtime.CompilerServices;
-using System.Text.Json;
+using Amazon.DynamoDBv2.DataModel;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 [ApiController]
-[Route("Application")]
+[Route("applications")]
 public class ApplicationController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IDynamoDBContext _dynamoDbContext;
 
-    public ApplicationController(AppDbContext context)
+    public ApplicationController(IDynamoDBContext context)
     {
-        _context = context;
+        _dynamoDbContext = context;
     }
 
+    // ✅ Create Application
     [HttpPost]
-    public async Task<ActionResult<ApplicationData>> PostApplication(ApplicationData applicationData)
+    public async Task<ActionResult<ApplicationData>> CreateApplication([FromBody] ApplicationData applicationData)
     {
-
         try
         {
             if (applicationData == null)
@@ -25,14 +23,12 @@ public class ApplicationController : ControllerBase
                 return BadRequest("Invalid data.");
             }
 
-            // Add the new ApplyLogEntry to the database
-            _context.ApplicationDatas.Add(applicationData);
+            // Set Partition Key & Unique Sort Key
+            applicationData.PK = "APPLICATION";
+            applicationData.SK = $"APPLICATION#{Guid.NewGuid()}";
 
-            // Save the changes
-            await _context.SaveChangesAsync();
-
-            return StatusCode(201);
-
+            await _dynamoDbContext.SaveAsync(applicationData);
+            return CreatedAtAction(nameof(GetApplicationById), new { sk = applicationData.SK }, applicationData);
         }
         catch (Exception ex)
         {
@@ -40,24 +36,25 @@ public class ApplicationController : ControllerBase
         }
     }
 
-    [HttpPut]
-    public async Task<ActionResult<ApplicationData>> UpdateApplication(ApplicationData applicationData)
+    // ✅ Update Application
+    [HttpPut("{sk}")]
+    public async Task<ActionResult<ApplicationData>> UpdateApplication(string sk, [FromBody] ApplicationData applicationData)
     {
         try
         {
             if (applicationData == null)
             {
-                return BadRequest("Invalid data or mismatched ID.");
+                return BadRequest("Invalid data.");
             }
 
-            // Check if the application exists
-            var existingApplication = await _context.ApplicationDatas.FindAsync(applicationData.Id);
+            // Fetch existing record
+            var existingApplication = await _dynamoDbContext.LoadAsync<ApplicationData>("APPLICATION", sk);
             if (existingApplication == null)
             {
-                return NotFound($"Application with ID {applicationData.Id} not found.");
+                return NotFound($"Application with SK {sk} not found.");
             }
 
-            // Update the application data
+            // Update fields
             existingApplication.AdSource = applicationData.AdSource;
             existingApplication.Company = applicationData.Company;
             existingApplication.AppliedJob = applicationData.AppliedJob;
@@ -72,11 +69,8 @@ public class ApplicationController : ControllerBase
             existingApplication.CompanySite = applicationData.CompanySite;
             existingApplication.Comments = applicationData.Comments;
 
-            // Save the changes
-            await _context.SaveChangesAsync();
-
-            // Return the updated application data
-            return Ok(existingApplication); // Return updated application data
+            await _dynamoDbContext.SaveAsync(existingApplication);
+            return Ok(existingApplication);
         }
         catch (Exception ex)
         {
@@ -84,30 +78,29 @@ public class ApplicationController : ControllerBase
         }
     }
 
+    // ✅ Fetch All Applications
     [HttpGet]
-    public async Task<ActionResult<ApplicationData>> FetchAllApplications()
+    public async Task<ActionResult<List<ApplicationData>>> FetchAllApplications()
     {
-
         try
         {
-            var allApplications = await _context.ApplicationDatas.ToListAsync();
+            var scanConditions = new List<ScanCondition>(); // Empty scan gets all items
+            var allApplications = await _dynamoDbContext.ScanAsync<ApplicationData>(scanConditions).GetRemainingAsync();
             return Ok(allApplications);
         }
         catch (Exception ex)
         {
-
             return StatusCode(500, "Internal server error: " + ex.Message);
         }
     }
 
-    [HttpGet("{applicationId}")]
-    public async Task<ActionResult<ApplicationData>> GetApplicationById(int applicationId)
+    // ✅ Get Single Application by SK
+    [HttpGet("{sk}")]
+    public async Task<ActionResult<ApplicationData>> GetApplicationById(string sk)
     {
-
         try
         {
-            var application = await _context.ApplicationDatas.FindAsync(applicationId);
-
+            var application = await _dynamoDbContext.LoadAsync<ApplicationData>("APPLICATION", sk);
             if (application == null)
             {
                 return NotFound();
@@ -117,33 +110,28 @@ public class ApplicationController : ControllerBase
         }
         catch (Exception ex)
         {
-
-            return StatusCode(500, "Internal server errors: " + ex.Message);
+            return StatusCode(500, "Internal server error: " + ex.Message);
         }
     }
 
-    [HttpDelete("{applicationId}")]
-    public async Task<ActionResult> RemoveApplication(int applicationId)
+    // ✅ Delete Application
+    [HttpDelete("{sk}")]
+    public async Task<ActionResult> RemoveApplication(string sk)
     {
-
         try
         {
-            var application = await _context.ApplicationDatas.FindAsync(applicationId);
-
+            var application = await _dynamoDbContext.LoadAsync<ApplicationData>("APPLICATION", sk);
             if (application == null)
             {
                 return NotFound();
             }
 
-            _context.ApplicationDatas.Remove(application);
-            await _context.SaveChangesAsync();
-
+            await _dynamoDbContext.DeleteAsync<ApplicationData>("APPLICATION", sk);
             return NoContent();
         }
         catch (Exception ex)
         {
             return StatusCode(500, "Internal server error: " + ex.Message);
         }
-
     }
 }

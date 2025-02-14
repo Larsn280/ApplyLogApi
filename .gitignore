@@ -13,6 +13,7 @@ out/
 publish/
 
 # Ignore user secrets (Sensitive data)
+.env
 secrets.json
 **/appsettings.Development.json
 
