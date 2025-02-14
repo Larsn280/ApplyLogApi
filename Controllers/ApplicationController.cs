@@ -2,7 +2,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("applications")]
+[Route("Applications")]
 public class ApplicationController : ControllerBase
 {
     private readonly IDynamoDBContext _dynamoDbContext;

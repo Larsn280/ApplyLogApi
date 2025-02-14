@@ -1,23 +1,31 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.Lambda.AspNetCoreServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
+// Check if we're running in Lambda
+bool isRunningInLambda = Environment.GetEnvironmentVariable("RUNNING_IN_LAMBDA") == "true";
+
+if (!isRunningInLambda)
 {
-    var accessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
-    var secretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
-    var region = Environment.GetEnvironmentVariable("AWS_REGION");
+    // Local configuration for DynamoDB
+    builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
+    {
+        var accessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
+        var secretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+        var region = Environment.GetEnvironmentVariable("AWS_REGION");
 
-    return new AmazonDynamoDBClient(
-        accessKey,
-        secretKey,
-        Amazon.RegionEndpoint.GetBySystemName(region)
-    );
-});
+        return new AmazonDynamoDBClient(
+            accessKey,
+            secretKey,
+            Amazon.RegionEndpoint.GetBySystemName(region)
+        );
+    });
 
-// Register DynamoDB Context
-builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>();
+    // Local configuration for DynamoDB Context
+    builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>();
+}
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -34,4 +42,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-app.Run();
+
+if (!isRunningInLambda)
+{
+    // Run normally when not in Lambda (local environment)
+    app.Run();
+}
